@@ -1,0 +1,357 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#1c2b3a">
+<title>合租清洁看板</title>
+<style>
+:root{--bg:#f3f6f9;--card:#fff;--tx:#1c2b3a;--sub:#7b8a97;--line:#e6ecf1;--ink:#1c2b3a;
+--p0:#ff7a59;--p1:#1fb5a3;--p2:#7c6cf0;--ok:#2fb86b;--warn:#f2a93b;--bad:#e5534b}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue","Microsoft YaHei",sans-serif;font-size:15px}
+button,input,select,textarea{font:inherit;color:inherit}button{border:0;background:none;cursor:pointer;padding:0}
+#app{max-width:1040px;margin:0 auto;padding:0 14px 90px}
+.top{background:var(--ink);color:#fff;margin:0 -14px;padding:calc(env(safe-area-inset-top) + 16px) 18px 18px;border-radius:0 0 26px 26px}
+.top h1{margin:0;font-size:20px;letter-spacing:1px}.top p{margin:4px 0 0;font-size:13px;color:#a9b8c6}
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-top:14px}
+.mnav{display:flex;align-items:center;gap:6px;background:#ffffff1c;border-radius:20px;padding:4px}
+.mnav button{width:32px;height:32px;border-radius:50%;color:#fff;font-size:18px}.mnav button:active{background:#fff3}
+.mnav span{min-width:104px;text-align:center;font-weight:600}
+.me{display:flex;align-items:center;gap:6px;font-size:13px;color:#a9b8c6}
+.me button{padding:6px 12px;border-radius:16px;background:#ffffff1c;color:#fff;font-size:13px}
+.me button.on{background:#fff;color:var(--ink);font-weight:700}
+.tabs{display:flex;gap:6px;margin:14px 0 4px}
+.tabs button{flex:1;padding:10px 0;border-radius:14px;background:#e6edf3;color:var(--sub);font-weight:600}
+.tabs button.on{background:var(--ink);color:#fff}
+.card{background:var(--card);border-radius:20px;padding:16px;box-shadow:0 2px 12px #1c2b3a0d}
+.card h3{margin:0 0 12px;font-size:16px;display:flex;justify-content:space-between;align-items:baseline}
+.card h3 small{font-size:12px;font-weight:400;color:var(--sub)}
+.grid{display:grid;gap:12px;margin-top:12px}
+.g2{grid-template-columns:1fr}.g3{grid-template-columns:1fr}
+@media(min-width:760px){.g2{grid-template-columns:300px 1fr}.g3{grid-template-columns:repeat(3,1fr)}}
+.alert{margin-top:12px;background:#fff4df;color:#9a6a0a;border-radius:16px;padding:11px 14px;font-size:14px}
+.alert.bad{background:#fde8e6;color:var(--bad)}
+.ringbox{display:flex;flex-direction:column;align-items:center;gap:10px}
+.ring{position:relative;width:160px;height:160px}
+.ring svg{transform:rotate(-90deg)}
+.ring .c{position:absolute;inset:0;display:grid;place-content:center;text-align:center}
+.ring .c b{font-size:34px;line-height:1}.ring .c small{color:var(--sub);font-size:12px;margin-top:4px}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%;text-align:center}
+.kpis div{background:#f3f6f9;border-radius:12px;padding:8px 2px;font-size:12px;color:var(--sub)}.kpis b{display:block;font-size:18px;color:var(--tx)}
+.pc{position:relative;overflow:hidden}
+.pc:before{content:"";position:absolute;left:0;top:0;bottom:0;width:6px;background:var(--c)}
+.pc .nm{display:flex;align-items:center;gap:8px;font-size:17px;font-weight:700}
+.dot{width:12px;height:12px;border-radius:50%;background:var(--c);flex:none}
+.pc .st{margin-left:auto;font-size:12px;font-weight:600;padding:3px 9px;border-radius:10px}
+.st.ok{background:#e1f6ea;color:var(--ok)}.st.hi{background:#fde8e6;color:var(--bad)}.st.lo{background:#fff1d8;color:#b97a0c}.st.none{background:#eef2f5;color:var(--sub)}
+.track{position:relative;height:14px;background:#edf1f4;border-radius:7px;margin:14px 0 8px}
+.track i{position:absolute;left:0;top:0;bottom:0;border-radius:7px;background:var(--c)}
+.track i.a{opacity:.28}
+.track u{position:absolute;top:-5px;bottom:-5px;width:2px;background:var(--ink);opacity:.75}
+.nums{display:flex;justify-content:space-between;font-size:12px;color:var(--sub)}.nums b{color:var(--tx)}
+.ar{margin-bottom:14px}.ar:last-child{margin:0}
+.ar .h{display:flex;justify-content:space-between;font-size:14px;margin-bottom:6px}.ar .h span{color:var(--sub);font-size:12px}
+.seg{display:flex;gap:3px;height:22px}
+.seg i{border-radius:6px;background:#e3e9ee;min-width:6px;position:relative}
+.seg i.d:after{content:"✓";position:absolute;inset:0;display:grid;place-items:center;color:#fff;font:700 12px/1 sans-serif;font-style:normal}
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--sub);margin-top:12px}.legend span:before{content:"";display:inline-block;width:10px;height:10px;border-radius:3px;background:var(--c,#e3e9ee);margin-right:5px;vertical-align:-1px}
+.act{display:flex;gap:8px;margin:18px 0 10px;flex-wrap:wrap}
+.act h2{margin:0;font-size:18px;flex:1;align-self:center}
+.btn{padding:9px 14px;border-radius:14px;background:var(--ink);color:#fff;font-weight:600;font-size:14px}
+.btn.ghost{background:#e6edf3;color:var(--ink)}
+.kan{display:grid;gap:12px}
+@media(min-width:760px){.kan{grid-template-columns:repeat(3,1fr);align-items:start}}
+.col{background:#e9eff4;border-radius:20px;padding:10px}
+.col>h4{margin:4px 6px 10px;font-size:14px;display:flex;justify-content:space-between}.col>h4 span{color:var(--sub);font-weight:400}
+.kc{background:#fff;border-radius:16px;padding:12px 12px 12px 15px;margin-bottom:10px;position:relative;box-shadow:0 1px 6px #1c2b3a10}
+.kc:before{content:"";position:absolute;left:0;top:12px;bottom:12px;width:4px;border-radius:0 4px 4px 0;background:var(--ac)}
+.kc.mine{outline:2px solid var(--wc)}
+.kt{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.tag{font-size:12px;font-weight:600;padding:2px 9px;border-radius:9px;background:color-mix(in srgb,var(--ac) 18%,#fff);color:color-mix(in srgb,var(--ac) 75%,#000)}
+.mins{font-size:12px;color:var(--sub)}
+.kc b{display:block;font-size:16px}.kc p{margin:4px 0 0;font-size:12.5px;color:var(--sub);line-height:1.5}
+.who{margin-top:9px;font-size:12.5px;line-height:1.7;color:var(--sub)}
+.who em{font-style:normal;display:inline-block;padding:1px 10px;border-radius:10px;background:var(--wc);color:#fff;font-weight:700;margin-right:6px}
+.who div b{display:inline;font-size:12.5px;color:var(--tx);font-weight:600}
+.ops{display:flex;gap:8px;margin-top:10px}
+.ops button{flex:1;padding:8px 0;border-radius:12px;font-weight:600;font-size:14px;background:#edf2f6;color:var(--ink)}
+.ops .pri{background:var(--ink);color:#fff}.ops .okb{background:var(--ok);color:#fff}
+.empty{text-align:center;color:var(--sub);padding:22px 0;font-size:13px}
+table{width:100%;border-collapse:collapse;font-size:14px}th{font-size:12px;color:var(--sub);font-weight:600;text-align:left;padding:6px 4px}
+td{padding:10px 4px;border-top:1px solid var(--line)}td.n{white-space:nowrap}
+.mini{height:8px;border-radius:4px;background:var(--c);margin-top:4px;min-width:2px}
+.cum{display:flex;align-items:flex-end;justify-content:space-around;height:150px;padding-top:10px}
+.cum div{width:70px;text-align:center;font-size:12px;color:var(--sub);display:flex;flex-direction:column;justify-content:flex-end;height:100%}
+.cum i{display:block;background:var(--c);border-radius:10px 10px 0 0;margin-bottom:6px}.cum b{color:var(--tx);font-size:14px}
+.pv{font-size:13px;line-height:1.8}.pv li{margin-left:-6px}
+.set .row{display:flex;gap:8px;align-items:center;margin-bottom:10px}
+.set input,.set select,.f input,.f select,.f textarea{padding:10px 12px;border:1.5px solid var(--line);border-radius:12px;background:#fafcfd;outline:none;width:100%}
+.set input:focus,.f input:focus{border-color:var(--ink)}
+.trow{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line);cursor:pointer}
+.trow:first-of-type{border:0}.trow span{flex:1}.trow small{color:var(--sub)}
+.btnrow{display:flex;gap:8px;flex-wrap:wrap}
+#mask{position:fixed;inset:0;background:#0006;z-index:20;display:none;align-items:flex-end;justify-content:center}
+#mask.show{display:flex}
+#sheet{width:100%;max-width:520px;max-height:90%;overflow-y:auto;background:#fff;border-radius:24px 24px 0 0;padding:20px 18px calc(env(safe-area-inset-bottom) + 18px);animation:up .22s ease-out}
+@keyframes up{from{transform:translateY(40px);opacity:0}}
+#sheet h3{margin:0 0 6px;font-size:19px}#sheet .sub{color:var(--sub);font-size:13px;margin-bottom:14px}
+.pick{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}
+.pick button{padding:14px 4px;border-radius:16px;background:var(--c);color:#fff;font-weight:700;font-size:15px}
+.pick button.me{outline:3px solid var(--ink);outline-offset:2px}
+.f{margin-bottom:12px}.f label{display:block;font-size:13px;color:var(--sub);margin-bottom:5px}
+.sbtns{display:flex;gap:10px;margin-top:8px}.sbtns button{flex:1;padding:13px;border-radius:14px;font-weight:600;background:#edf3f0;color:var(--sub)}.sbtns .ok{background:var(--ink);color:#fff}.sbtns .del{background:#fde8e6;color:var(--bad);flex:none;padding:13px 18px}
+#toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:#1c2b3aee;color:#fff;padding:11px 16px;border-radius:20px;font-size:14px;z-index:30;display:none;gap:12px;align-items:center;max-width:92%}
+#toast.show{display:flex}#toast button{color:#8fe3c9;font-weight:700}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="mask"><div id="sheet"></div></div>
+<div id="toast"></div>
+<script>
+/* ============ 基础 ============ */
+const $ = s => document.querySelector(s);
+const uid = () => Math.random().toString(36).slice(2, 8);
+const pad = n => String(n).padStart(2, '0');
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const KEY = 'flatchore_v1', ME = 'flatchore_me';
+const COLORS = ['var(--p0)', 'var(--p1)', 'var(--p2)'];
+const AREAS = { '客厅': { icon: '🛋️', color: '#f2a93b', full: '客厅（含饭厅）' }, '厨房': { icon: '🍳', color: '#e5534b', full: '厨房' }, '洗衣房': { icon: '🧺', color: '#3b8fe0', full: '洗衣房' } };
+const mkey = d => d.getFullYear() + '-' + pad(d.getMonth() + 1);
+const mIdx = k => { const [y, m] = k.split('-').map(Number); return y * 12 + m - 1; };
+const mFromIdx = i => Math.floor(i / 12) + '-' + pad(i % 12 + 1);
+const mLabel = k => k.replace('-', ' 年 ').replace(/ (\d+)$/, (_, m) => ' ' + +m + ' 月').replace(' 年 ', '年');
+const fmtT = iso => { if (!iso) return ''; const d = new Date(iso); return pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes()); };
+const toLocalInput = d => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+
+/* ============ 数据 ============ */
+function defaults() {
+  const T = (area, name, min, note) => ({ id: uid(), area, name, min, note });
+  return {
+    people: ['室友A', '室友B', '室友C'],
+    tasks: [
+      T('客厅', '地板清洁', 40, '含沙发底下的地板：先扫后拖'), T('客厅', '沙发盖布清洗', 25, '拆下放进洗衣机清洗，晾干后装回'),
+      T('客厅', '茶几 / 桌子擦拭', 15, '茶几、饭桌等所有桌面'), T('客厅', '窗户擦拭', 25, '玻璃内外两面'),
+      T('厨房', '灶台擦拭', 20, '台面 + 灶具缝隙'), T('厨房', '油烟机擦拭', 30, '外壳、油网、油杯'),
+      T('厨房', '柜门擦拭', 20, '吊柜 / 地柜柜门'), T('厨房', '地板清洁', 20, '先扫后拖'),
+      T('洗衣房', '地板清洁', 15, '先扫后拖'), T('洗衣房', '洗衣机外壳擦拭', 10, '顶盖、外壳、投放盒周围'), T('洗衣房', '窗户擦拭', 15, '玻璃内外两面')
+    ],
+    months: {}   // { 'YYYY-MM': { taskId: { who:0|1|2, claimAt:ISO, doneAt?:ISO } } }
+  };
+}
+let S = load();
+function load() { try { const d = JSON.parse(localStorage.getItem(KEY)); if (d && d.tasks) return d; } catch (e) { } return defaults(); }
+function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { } }
+let me = +(localStorage.getItem(ME) || 0);
+const ui = { tab: 'board', month: mkey(new Date()) };
+const rec = k => (S.months[k] ||= {});
+const taskById = id => S.tasks.find(t => t.id === id);
+const total = () => S.tasks.reduce((a, t) => a + t.min, 0);
+
+/* ============ 统计 ============ */
+function stats(k) {
+  const r = rec(k), P = [0, 1, 2].map(() => ({ assigned: 0, done: 0, n: 0, nd: 0 }));
+  let doneMin = 0, claimedMin = 0, doneN = 0, claimedN = 0;
+  S.tasks.forEach(t => { const x = r[t.id]; if (!x) return; P[x.who].assigned += t.min; P[x.who].n++; claimedMin += t.min; claimedN++; if (x.doneAt) { P[x.who].done += t.min; P[x.who].nd++; doneMin += t.min; doneN++; } });
+  return { P, doneMin, claimedMin, doneN, claimedN, N: S.tasks.length, tot: total() };
+}
+const cumulative = () => { const c = [0, 0, 0]; Object.keys(S.months).forEach(k => { const s = stats(k); s.P.forEach((p, i) => c[i] += p.done); }); return c; };
+
+/* ============ 均分算法 ============ */
+function groups() {   // 把所有任务均分成 3 组（贪心 + 交换优化）
+  const sum = a => a.reduce((s, x) => s + x.min, 0), g = [[], [], []];
+  [...S.tasks].sort((a, b) => b.min - a.min || a.id.localeCompare(b.id)).forEach(x => { let b = 0; for (let i = 1; i < 3; i++) if (sum(g[i]) < sum(g[b])) b = i; g[b].push(x); });
+  const sp = () => { const s = g.map(sum); return Math.max(...s) - Math.min(...s); };
+  const swap = () => { const base = sp(); for (let a = 0; a < 3; a++) for (let b = a + 1; b < 3; b++) for (let i = 0; i < g[a].length; i++) for (let j = 0; j < g[b].length; j++) { [g[a][i], g[b][j]] = [g[b][j], g[a][i]]; if (sp() < base) return true; [g[a][i], g[b][j]] = [g[b][j], g[a][i]]; } return false; };
+  let guard = 0; while (swap() && guard++ < 50);
+  return g;
+}
+// 整月都没人认领时：三组按月份轮转分给三个人，连续三个月每人做遍所有组
+function rotationPlan(k) { const g = groups(), off = mIdx(k) % 3, out = {}; for (let p = 0; p < 3; p++) g[(p + off) % 3].forEach(t => out[t.id] = p); return out; }
+function autoSplit(k) {
+  const r = rec(k), before = JSON.stringify(r), now = new Date().toISOString();
+  const free = S.tasks.filter(t => !r[t.id]);
+  if (!free.length) return toast('所有任务都已认领');
+  if (free.length === S.tasks.length) { const plan = rotationPlan(k); free.forEach(t => r[t.id] = { who: plan[t.id], claimAt: now }); }
+  else {   // 已有人认领：把剩下的补给当前工作量最少的人
+    const load = [0, 0, 0], cum = cumulative(); S.tasks.forEach(t => { if (r[t.id]) load[r[t.id].who] += t.min; });
+    free.sort((a, b) => b.min - a.min).forEach(t => { let b = 0; for (let i = 1; i < 3; i++) if (load[i] < load[b] || (load[i] === load[b] && cum[i] < cum[b])) b = i; r[t.id] = { who: b, claimAt: now }; load[b] += t.min; });
+  }
+  save(); render();
+  const s = stats(k).P.map((p, i) => `${S.people[i]} ${p.assigned}`).join(' / ');
+  toast(`已均分（分钟）：${s}`, () => { S.months[k] = JSON.parse(before); });
+}
+
+/* ============ 渲染 ============ */
+const person = i => `<span class="who"><em style="--wc:${COLORS[i]}">${esc(S.people[i])}</em></span>`;
+function render() {
+  const now = new Date(), cur = mkey(now);
+  $('#app').innerHTML = `<div class="top"><h1>🧹 合租清洁看板</h1><p>客厅 · 厨房 · 洗衣房　每月深度清洁，三人轮流、工作量均分</p>
+    <div class="bar"><div class="mnav"><button data-a="prev">‹</button><span>${mLabel(ui.month)}</span><button data-a="next">›</button></div>
+    <div class="me">我是：${S.people.map((n, i) => `<button class="${me === i ? 'on' : ''}" data-a="me" data-i="${i}">${esc(n)}</button>`).join('')}</div></div></div>
+    <div class="tabs">${[['board', '📊 看板'], ['hist', '🗓 历史 & 下月'], ['set', '⚙️ 设置']].map(([k, l]) => `<button class="${ui.tab === k ? 'on' : ''}" data-a="tab" data-k="${k}">${l}</button>`).join('')}</div>
+    ${ui.tab === 'board' ? viewBoard(cur) : ui.tab === 'hist' ? viewHist() : viewSet()}`;
+}
+
+function viewBoard(cur) {
+  const k = ui.month, s = stats(k), r = rec(k), tot = s.tot, target = tot / 3;
+  const pct = tot ? Math.round(100 * s.doneMin / tot) : 0, R = 62, C = 2 * Math.PI * R;
+  const dd = new Date(); const dim = new Date(dd.getFullYear(), dd.getMonth() + 1, 0).getDate(), left = dim - dd.getDate();
+  const undone = s.N - s.doneN;
+  let alert = '';
+  if (k === cur && undone && left <= 7) alert = `<div class="alert ${left <= 2 ? 'bad' : ''}">⏰ 本月只剩 ${left} 天，还有 ${undone} 项没做完${s.N - s.claimedN ? `（其中 ${s.N - s.claimedN} 项还没人认领）` : ''}</div>`;
+  else if (!s.claimedN) alert = `<div class="alert">👋 本月还没人认领。点下面「⚖️ 一键均分」自动分配，或在卡片上自己挑。</div>`;
+  const scale = Math.max(target, ...s.P.map(p => p.assigned)) * 1.15 || 1;
+  const pcs = [0, 1, 2].map(i => {
+    const p = s.P[i], diff = Math.round(p.assigned - target);
+    const st = !p.assigned ? ['none', '未认领'] : Math.abs(diff) <= Math.max(5, target * 0.08) ? ['ok', '均衡 ✓'] : diff > 0 ? ['hi', `偏多 +${diff}`] : ['lo', `偏少 ${diff}`];
+    return `<div class="card pc" style="--c:${COLORS[i]}"><div class="nm"><span class="dot"></span>${esc(S.people[i])}<span class="st ${st[0]}">${st[1]}</span></div>
+      <div class="track"><i class="a" style="width:${p.assigned / scale * 100}%"></i><i style="width:${p.done / scale * 100}%"></i><u style="left:${target / scale * 100}%" title="均分目标 ${target.toFixed(0)} 分钟"></u></div>
+      <div class="nums"><span>已认领 <b>${p.assigned}</b> 分钟 · ${p.n} 项</span><span>已完成 <b>${p.done}</b> 分钟</span></div></div>`;
+  }).join('');
+  const areas = Object.keys(AREAS).map(a => {
+    const ts = S.tasks.filter(t => t.area === a), m = ts.reduce((x, t) => x + t.min, 0), dn = ts.filter(t => r[t.id]?.doneAt).length;
+    return `<div class="ar"><div class="h"><b>${AREAS[a].icon} ${AREAS[a].full}</b><span>${dn}/${ts.length} 项完成 · ${m} 分钟</span></div>
+      <div class="seg">${ts.map(t => { const x = r[t.id]; return `<i class="${x?.doneAt ? 'd' : ''}" style="flex:${t.min};background:${x ? COLORS[x.who] : ''};${x && !x.doneAt ? 'opacity:.4' : ''}" title="${esc(t.name)} · ${t.min}分钟${x ? ' · ' + esc(S.people[x.who]) : ' · 未认领'}"></i>`; }).join('')}</div></div>`;
+  }).join('');
+  const col = (title, list, empty) => `<div class="col"><h4>${title}<span>${list.length}</span></h4>${list.map(card).join('') || `<div class="empty">${empty}</div>`}</div>`;
+  const byA = (a, b) => Object.keys(AREAS).indexOf(a.area) - Object.keys(AREAS).indexOf(b.area);
+  const free = S.tasks.filter(t => !r[t.id]).sort(byA), doing = S.tasks.filter(t => r[t.id] && !r[t.id].doneAt).sort(byA), done = S.tasks.filter(t => r[t.id]?.doneAt).sort((a, b) => r[b.id].doneAt.localeCompare(r[a.id].doneAt));
+  return `${alert}
+  <div class="grid g2"><div class="card ringbox"><h3 style="width:100%">本月完成度</h3>
+    <div class="ring"><svg width="160" height="160"><circle cx="80" cy="80" r="${R}" fill="none" stroke="#edf1f4" stroke-width="16"/>
+      <circle cx="80" cy="80" r="${R}" fill="none" stroke="#bfe6d1" stroke-width="16" stroke-linecap="round" stroke-dasharray="${C * s.claimedMin / (tot || 1)} ${C}"/>
+      <circle cx="80" cy="80" r="${R}" fill="none" stroke="var(--ok)" stroke-width="16" stroke-linecap="round" stroke-dasharray="${C * s.doneMin / (tot || 1)} ${C}"/></svg>
+      <div class="c"><b>${pct}%</b><small>${s.doneMin}/${tot} 分钟</small></div></div>
+    <div class="kpis"><div><b>${s.N - s.claimedN}</b>待认领</div><div><b>${s.claimedN - s.doneN}</b>进行中</div><div><b>${s.doneN}</b>已完成</div></div></div>
+    <div class="card"><h3>各区域进度 <small>色块宽度 = 工作量</small></h3>${areas}
+      <div class="legend">${S.people.map((n, i) => `<span style="--c:${COLORS[i]}">${esc(n)}</span>`).join('')}<span>未认领</span><span style="--c:#999;opacity:.5">浅色=进行中，✓=已完成</span></div></div></div>
+  <div class="grid g3">${pcs}</div>
+  <div class="act"><h2>任务看板</h2><button class="btn ghost" data-a="clear">清空本月</button><button class="btn" data-a="split">⚖️ 一键均分</button></div>
+  <div class="kan">${col('🕘 待认领', free, '全部认领啦 🎉')}${col('🧽 进行中', doing, '还没有进行中的任务')}${col('✅ 已完成', done, '完成后会出现在这里')}</div>`;
+}
+function card(t) {
+  const x = rec(ui.month)[t.id], a = AREAS[t.area] || { color: '#999' };
+  const who = x ? `<div class="who" style="--wc:${COLORS[x.who]}"><em>${esc(S.people[x.who])}</em><div>认领 <b>${fmtT(x.claimAt)}</b></div>${x.doneAt ? `<div>完成 <b>${fmtT(x.doneAt)}</b></div>` : ''}</div>` : '';
+  const ops = !x ? `<button class="pri" data-a="claim" data-id="${t.id}">✋ 我来认领</button>`
+    : x.doneAt ? `<button data-a="undo" data-id="${t.id}">撤销完成</button>`
+      : `<button data-a="release" data-id="${t.id}">放回</button><button class="okb" data-a="done" data-id="${t.id}">✓ 完成</button>`;
+  return `<div class="kc ${x && x.who === me ? 'mine' : ''}" style="--ac:${a.color};--wc:${x ? COLORS[x.who] : '#999'}"><div class="kt"><span class="tag">${a.icon || ''} ${esc(t.area)}</span><span class="mins">⏱ ${t.min} 分钟</span></div>
+    <b>${esc(t.name)}</b>${t.note ? `<p>${esc(t.note)}</p>` : ''}${who}<div class="ops">${ops}</div></div>`;
+}
+
+function viewHist() {
+  const cur = mkey(new Date());
+  const keys = [...new Set([...Object.keys(S.months), cur])].sort().reverse().slice(0, 12);
+  const mx = Math.max(1, ...keys.flatMap(k => stats(k).P.map(p => p.done)));
+  const rows = keys.map(k => { const s = stats(k); return `<tr><td class="n"><b>${mLabel(k)}</b></td><td class="n">${s.tot ? Math.round(100 * s.doneMin / s.tot) : 0}%</td>${s.P.map((p, i) => `<td style="--c:${COLORS[i]}">${p.done} 分钟<div class="mini" style="width:${p.done / mx * 100}%"></div></td>`).join('')}</tr>`; }).join('');
+  const cum = cumulative(), cm = Math.max(1, ...cum);
+  const nk = mFromIdx(mIdx(ui.month) + 1), plan = rotationPlan(nk);
+  const pv = [0, 1, 2].map(i => { const ts = S.tasks.filter(t => plan[t.id] === i); return `<div class="card" style="border-top:5px solid ${COLORS[i]}"><h3>${esc(S.people[i])}<small>${ts.reduce((a, t) => a + t.min, 0)} 分钟</small></h3><ul class="pv">${ts.map(t => `<li>${AREAS[t.area]?.icon || ''} ${esc(t.area)} · ${esc(t.name)} <small style="color:var(--sub)">${t.min}′</small></li>`).join('')}</ul></div>`; }).join('');
+  return `<div class="grid"><div class="card"><h3>累计完成工作量 <small>所有月份合计</small></h3>
+    <div class="cum">${cum.map((v, i) => `<div style="--c:${COLORS[i]}"><b>${v}</b><i style="height:${v / cm * 100}px"></i>${esc(S.people[i])}</div>`).join('')}</div></div>
+    <div class="card"><h3>每月完成情况 <small>已完成的分钟数</small></h3><table><tr><th>月份</th><th>完成率</th>${S.people.map(n => `<th>${esc(n)}</th>`).join('')}</tr>${rows}</table></div>
+    <div class="card"><h3>🔁 ${mLabel(nk)}轮换预览 <small>工作量均分，组别按月轮转，三个月每人做遍所有组</small></h3><div class="grid g3" style="margin:0">${pv}</div></div></div>`;
+}
+
+function viewSet() {
+  return `<div class="grid set"><div class="card"><h3>室友名字 <small>改完自动保存</small></h3>
+    ${S.people.map((n, i) => `<div class="row"><span class="dot" style="--c:${COLORS[i]}"></span><input data-name="${i}" value="${esc(n)}" maxlength="8"></div>`).join('')}</div>
+    <div class="card"><h3>清洁任务 <small>工作量=预计分钟，决定均分结果</small></h3>
+    ${Object.keys(AREAS).map(a => `<div class="sec" style="margin-top:6px;font-weight:700">${AREAS[a].icon} ${a}</div>${S.tasks.filter(t => t.area === a).map(t => `<div class="trow" data-a="edit" data-id="${t.id}"><span>${esc(t.name)}<br><small>${esc(t.note || '')}</small></span><b>${t.min}′</b><small>编辑 ›</small></div>`).join('')}`).join('')}
+    <div class="btnrow" style="margin-top:12px"><button class="btn" data-a="addtask">＋ 添加任务</button></div></div>
+    <div class="card"><h3>数据与同步</h3><div class="btnrow">
+      <button class="btn" data-a="link">🔗 复制分享链接</button><button class="btn ghost" data-a="export">⬇️ 导出备份</button><button class="btn ghost" data-a="import">⬆️ 导入备份</button>
+      <button class="btn ghost" data-a="demo">🎨 载入演示数据</button><button class="btn ghost" data-a="reset" style="color:var(--bad)">🗑 清空全部</button></div>
+      <p style="font-size:12.5px;color:var(--sub);line-height:1.7;margin:12px 0 0">数据保存在这台设备的浏览器里。三人要看同一份：谁改完就「复制分享链接」发到群里，其他人点开链接选择导入即可（是快照，不是实时同步）。</p>
+      <input type="file" id="file" accept="application/json" hidden></div></div>`;
+}
+
+/* ============ 弹层 ============ */
+const mask = $('#mask'), sheet = $('#sheet');
+function openSheet(h) { sheet.innerHTML = h; mask.classList.add('show'); }
+function closeSheet() { mask.classList.remove('show'); }
+mask.addEventListener('click', e => { if (e.target === mask) closeSheet(); });
+let tt; function toast(m, undo) {
+  const t = $('#toast'); t.innerHTML = `<span>${m}</span>${undo ? '<button id="u">撤销</button>' : ''}`; t.classList.add('show');
+  if (undo) $('#u').onclick = () => { undo(); save(); render(); t.classList.remove('show'); };
+  clearTimeout(tt); tt = setTimeout(() => t.classList.remove('show'), 4500);
+}
+function openClaim(id) {
+  const t = taskById(id), now = new Date();
+  openSheet(`<h3>认领「${esc(t.area)} · ${esc(t.name)}」</h3><div class="sub">⏱ 预计 ${t.min} 分钟 · 选择谁来做，下方时间会一并记录</div>
+    <div class="f"><label>认领时间（默认现在，可修改）</label><input type="datetime-local" id="ct" value="${toLocalInput(now)}"></div>
+    <div class="pick">${S.people.map((n, i) => `<button style="--c:${COLORS[i]}" class="${me === i ? 'me' : ''}" data-a="pick" data-id="${id}" data-i="${i}">${esc(n)}${me === i ? '<br><small>（我）</small>' : ''}</button>`).join('')}</div>
+    <div class="sbtns"><button id="cx">取消</button></div>`);
+  $('#cx').onclick = closeSheet;
+}
+function taskForm(t) {
+  const d = t || { area: '客厅', min: 20, name: '', note: '' };
+  openSheet(`<h3>${t ? '编辑任务' : '添加任务'}</h3><form id="tf"><div class="f"><label>区域</label><select name="area">${Object.keys(AREAS).map(a => `<option ${a === d.area ? 'selected' : ''}>${a}</option>`).join('')}</select></div>
+    <div class="f"><label>任务名称</label><input name="name" required value="${esc(d.name)}"></div><div class="f"><label>预计分钟（工作量）</label><input name="min" type="number" min="1" required value="${d.min}"></div>
+    <div class="f"><label>说明（可选）</label><input name="note" value="${esc(d.note)}"></div>
+    <div class="sbtns">${t ? '<button type="button" class="del" id="td">删除</button>' : ''}<button type="button" id="cx">取消</button><button class="ok">保存</button></div></form>`);
+  $('#cx').onclick = closeSheet;
+  if (t) $('#td').onclick = () => { if (confirm('删除这个任务？历史记录里它的完成情况也会消失。')) { S.tasks.splice(S.tasks.indexOf(t), 1); save(); closeSheet(); render(); } };
+  $('#tf').onsubmit = e => { e.preventDefault(); const f = e.target.elements, v = { area: f.area.value, name: f.name.value.trim(), min: Math.max(1, +f.min.value || 1), note: f.note.value.trim() }; t ? Object.assign(t, v) : S.tasks.push({ id: uid(), ...v }); save(); closeSheet(); render(); };
+}
+
+/* ============ 演示数据 ============ */
+function demo() {
+  S = defaults(); const now = new Date(), cur = mkey(now), ci = mIdx(cur);
+  [ci - 2, ci - 1, ci].forEach((mi, n) => {
+    const k = mFromIdx(mi), plan = rotationPlan(k), r = rec(k), [y, m] = k.split('-').map(Number);
+    S.tasks.forEach((t, j) => {
+      const claim = new Date(y, m - 1, 2 + (j % 3), 19, 10 + j), done = new Date(y, m - 1, 5 + (j % 7), 14, 5 * j);
+      if (n === 2 && j >= 8) return;                       // 本月最后 3 项没人认领
+      r[t.id] = { who: plan[t.id], claimAt: claim.toISOString() };
+      if (n < 2 || j < 5) r[t.id].doneAt = (n === 2 ? new Date(y, m - 1, Math.min(now.getDate(), 3 + j), 16, 20) : done).toISOString();
+    });
+  });
+  save();
+}
+
+/* ============ 事件 ============ */
+const b64 = o => btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+const unb64 = s => JSON.parse(decodeURIComponent(escape(atob(s.replace(/-/g, '+').replace(/_/g, '/')))));
+document.addEventListener('click', e => {
+  const el = e.target.closest('[data-a]'); if (!el) return;
+  const a = el.dataset.a, id = el.dataset.id, k = ui.month, r = rec(k);
+  switch (a) {
+    case 'prev': ui.month = mFromIdx(mIdx(k) - 1); break;
+    case 'next': ui.month = mFromIdx(mIdx(k) + 1); break;
+    case 'me': me = +el.dataset.i; try { localStorage.setItem(ME, me); } catch (x) { } break;
+    case 'tab': ui.tab = el.dataset.k; break;
+    case 'split': autoSplit(k); return;
+    case 'clear': if (confirm(`清空${mLabel(k)}的所有认领和完成记录？`)) { const bk = JSON.stringify(r); S.months[k] = {}; save(); render(); toast('已清空', () => { S.months[k] = JSON.parse(bk); }); } return;
+    case 'claim': openClaim(id); return;
+    case 'pick': { const v = $('#ct').value, at = v ? new Date(v) : new Date(); r[id] = { who: +el.dataset.i, claimAt: at.toISOString() }; save(); closeSheet(); break; }
+    case 'release': delete r[id]; save(); break;
+    case 'done': { const x = r[id]; x.doneAt = new Date().toISOString(); save(); render(); toast(`✅ ${S.people[x.who]} 完成了「${taskById(id).name}」`, () => { delete x.doneAt; }); return; }
+    case 'undo': delete r[id].doneAt; save(); break;
+    case 'edit': taskForm(taskById(id)); return;
+    case 'addtask': taskForm(); return;
+    case 'link': { const url = location.href.split('#')[0] + '#d=' + b64(S); (navigator.clipboard ? navigator.clipboard.writeText(url) : Promise.reject()).then(() => toast('链接已复制，发到室友群吧'), () => prompt('复制这个链接：', url)); return; }
+    case 'export': { const x = document.createElement('a'); x.href = URL.createObjectURL(new Blob([JSON.stringify(S, null, 2)], { type: 'application/json' })); x.download = '合租清洁-' + mkey(new Date()) + '.json'; x.click(); return; }
+    case 'import': $('#file').click(); return;
+    case 'demo': if (confirm('用演示数据覆盖当前数据？')) { demo(); } break;
+    case 'reset': if (confirm('清空全部数据（名字、任务、历史）？建议先导出备份')) { S = defaults(); save(); } break;
+  }
+  render();
+});
+document.addEventListener('change', e => {
+  const t = e.target;
+  if (t.dataset.name != null) { S.people[+t.dataset.name] = t.value.trim() || S.people[+t.dataset.name]; save(); return; }
+  if (t.id === 'file' && t.files[0]) { const fr = new FileReader(); fr.onload = () => { try { const d = JSON.parse(fr.result); if (!d.tasks || !d.people) throw 0; S = d; save(); render(); toast('导入成功 ✅'); } catch (x) { alert('文件格式不对'); } }; fr.readAsText(t.files[0]); }
+});
+// 通过分享链接打开：询问是否导入
+(function () {
+  const m = location.hash.match(/^#d=(.+)/); if (!m) return;
+  try { const d = unb64(m[1]); if (d.tasks && d.people && confirm('检测到分享链接里的数据，是否导入并覆盖本机数据？')) { S = d; save(); } } catch (x) { }
+  history.replaceState(null, '', location.pathname + location.search);
+})();
+render();
+</script>
+</body>
+</html>
